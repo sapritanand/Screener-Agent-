@@ -1,0 +1,54 @@
+# AI-Powered Stock Screener Agent Dependencies
+# ===============================================
+
+# Core LangChain and LangGraph Framework
+langgraph>=0.0.40
+langchain>=0.1.0
+langchain-community>=0.0.20
+langchain-core>=0.1.0
+
+# Ollama Integration for Local LLMs
+langchain-ollama>=0.1.0
+
+# Financial Data APIs
+yfinance>=0.2.18
+
+# Terminal UI and Formatting
+colorama>=0.4.6
+
+# Type Checking and Annotations
+typing-extensions>=4.0.0
+
+# Data Processing and JSON handling
+# (Built-in with Python 3.8+)
+
+# HTTP Requests (for API calls)
+requests>=2.28.0
+
+# Date and Time Handling
+# (Built-in with Python 3.8+)
+
+# Development Dependencies (Optional)
+# =====================================
+# pytest>=7.0.0              # Testing framework
+# black>=22.0.0               # Code formatting
+# flake8>=5.0.0               # Linting
+# mypy>=1.0.0                 # Type checking
+# jupyter>=1.0.0              # Notebook support
+
+# Production Dependencies (Optional)
+# ===================================
+# gunicorn>=20.1.0            # WSGI server
+# uvicorn>=0.18.0             # ASGI server
+# fastapi>=0.85.0             # Web API framework
+# pydantic>=1.10.0            # Data validation
+
+# Monitoring and Logging (Optional)
+# ==================================
+# prometheus-client>=0.15.0   # Metrics
+# structlog>=22.0.0           # Structured logging
+
+# Security (Optional)
+# ===================
+# cryptography>=38.0.0        # Encryption
+# python-dotenv>=0.20.0       # Environment variables

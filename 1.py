@@ -6,6 +6,7 @@ from langchain_ollama import ChatOllama
 from colorama import Fore 
 from langgraph.prebuilt import ToolNode 
 from tool import simple_screener
+import re
 
 # 2. Create LLM
 llm = ChatOllama(model='qwen')
@@ -25,29 +26,50 @@ def chatbot(state:State):
     print(state['messages'])
     last_message = state['messages'][-1].content.lower()
     
+    # Extract optional size (e.g., "top 3", "show 10", "give me five")
+    size = 5
+    number_words = {
+        'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+        'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10
+    }
+    # numeric patterns
+    m = re.search(r'(top|show|list|give|display)\s*(\d+)', last_message)
+    if m:
+        try:
+            size = max(1, min(20, int(m.group(2))))
+        except Exception:
+            size = 5
+    else:
+        for word, val in number_words.items():
+            if re.search(rf'(top|show|list|give|display)\s*{word}\b', last_message):
+                size = max(1, min(20, val))
+                break
+
+    include_sparkline = any(k in last_message for k in ["spark", "trend", "chart"])
+    
     # Check if user is asking for stock screening
     stock_keywords = ['stock', 'gainers', 'losers', 'active', 'tech', 'undervalued', 'small cap', 'large cap', 'london', 'tomorrow', 'session']
     if any(keyword in last_message for keyword in stock_keywords):
         # Manually call the screener based on keywords
         try:
             if 'gainer' in last_message or 'winner' in last_message:
-                result = simple_screener.invoke({"screen_type": "day_gainers", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "day_gainers", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             elif 'loser' in last_message or 'decliner' in last_message:
-                result = simple_screener.invoke({"screen_type": "day_losers", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "day_losers", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             elif 'active' in last_message or 'volume' in last_message:
-                result = simple_screener.invoke({"screen_type": "most_actives", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "most_actives", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             elif 'tech' in last_message or 'technology' in last_message:
-                result = simple_screener.invoke({"screen_type": "growth_technology_stocks", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "growth_technology_stocks", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             elif 'undervalued' in last_message and 'large' in last_message:
-                result = simple_screener.invoke({"screen_type": "undervalued_large_caps", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "undervalued_large_caps", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             elif 'small' in last_message:
-                result = simple_screener.invoke({"screen_type": "small_cap_gainers", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "small_cap_gainers", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             elif 'london' in last_message or 'tomorrow' in last_message:
                 # For London session, show most actives with London focus
-                result = simple_screener.invoke({"screen_type": "most_actives", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "most_actives", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             else:
                 # Default to most actives
-                result = simple_screener.invoke({"screen_type": "most_actives", "offset": 0})
+                result = simple_screener.invoke({"screen_type": "most_actives", "offset": 0, "size": size, "include_sparkline": include_sparkline})
             
             return {"messages":[{"role": "assistant", "content": result}]}
         except Exception as e:
@@ -67,6 +89,8 @@ I can help you find stocks based on various criteria. Here are some things you c
 • "Technology growth stocks" - Tech companies with growth potential
 • "Undervalued large caps" - Large cap value stocks
 • "Small cap gainers" - Small cap growth stocks
+
+You can also say things like: "top 3 with trend" to control how many results and include sparklines.
 
 💡 **Tips:**
 • Be specific about what type of stocks you're looking for
@@ -108,6 +132,8 @@ if __name__ == '__main__':
 
 💡 Try asking: "Show me day gainers" or "Find tech stocks"
 🔧 Type 'quit' or 'exit' to close the application
+
+Tip: add "top 3" or "trend" to control count and sparklines.
 """ + Fore.RESET)
     print("="*80 + "\n")
     
